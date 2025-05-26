@@ -39,7 +39,6 @@ class ControladorVoto:
     def addVoto(self):
         self.telaVoto.mostraMensagem("\n--- Adicionar Voto ---")
 
-        # Selecionar membro da academia que vai votar
         membros = self.controladorSistema.controladorMembroAcademia.membrosAcademia
         if not membros:
             self.telaVoto.mostraMensagem("Nenhum membro da academia cadastrado!")
@@ -52,7 +51,6 @@ class ControladorVoto:
             return
         membro = membros[idx_membro]
 
-        # Selecionar categoria para votar
         categorias = self.controladorSistema.controladorCategorias.categorias
         if not categorias:
             self.telaVoto.mostraMensagem("Nenhuma categoria cadastrada!")
@@ -65,7 +63,6 @@ class ControladorVoto:
             return
         categoria = categorias[idx_cat]
 
-        # Selecionar indicado (filme ou participante) conforme categoria
         if categoria.e_filme:
             filmes = self.controladorSistema.controladorFilmes.filmes
             if not filmes:
@@ -79,28 +76,33 @@ class ControladorVoto:
                 return
             indicado = filmes[idx_indicado]
         else:
+            # FILTRO ESPECÍFICO POR CATEGORIA
             participantes = self.controladorSistema.controladorParticipante.participantes
-            if not participantes:
-                self.telaVoto.mostraMensagem("Nenhum participante cadastrado!")
+            funcao_categoria = categoria.funcao.nome.strip().lower()
+            participantes_filtrados = [
+                p for p in participantes
+                if p.funcao.nome.strip().lower() == funcao_categoria
+            ]
+            if not participantes_filtrados:
+                self.telaVoto.mostraMensagem("Nenhum participante cadastrado para essa função!")
                 return
-            for i, part in enumerate(participantes, 1):
-                self.telaVoto.mostraMensagem(f"{i} - {part.pessoa.nome} ({part.funcao.nome} em '{part.filme.titulo}')")
+            for i, part in enumerate(participantes_filtrados, 1):
+                self.telaVoto.mostraMensagem(f"{i} - {part.participante.nome} ({part.funcao.nome} em '{part.filme.titulo}')")
             idx_indicado = self.telaVoto.getInt("Escolha o participante votado (número): ") - 1
-            if idx_indicado < 0 or idx_indicado >= len(participantes):
+            if idx_indicado < 0 or idx_indicado >= len(participantes_filtrados):
                 self.telaVoto.mostraMensagem("Participante inválido.")
                 return
-            indicado = participantes[idx_indicado]
+            indicado = participantes_filtrados[idx_indicado]
 
-        # Verificar se o membro já votou nessa categoria para evitar voto duplicado
         for voto in self.votos:
             if voto.membro == membro and voto.categoria == categoria:
                 self.telaVoto.mostraMensagem("Este membro já votou nesta categoria!")
                 return
 
-        # Criar e salvar o voto
         novo_voto = Voto(membro, categoria, indicado)
         self.votos.append(novo_voto)
         self.telaVoto.mostraMensagem("✅ Voto registrado com sucesso!")
+
 
     def delVoto(self):
         self.telaVoto.mostraMensagem("\n--- Remover Voto ---")
@@ -143,11 +145,30 @@ class ControladorVoto:
         if voto.categoria.e_filme:
             self.telaVoto.mostraMensagem(f"Filme votado: {voto.indicado.titulo} ({voto.indicado.ano})")
         else:
-            self.telaVoto.mostraMensagem(f"Participante votado: {voto.indicado.pessoa.nome} ({voto.indicado.funcao.nome} em '{voto.indicado.filme.titulo}')")
+            self.telaVoto.mostraMensagem(f"Participante votado: {voto.indicado.participante.nome} ({voto.indicado.funcao.nome} em '{voto.indicado.filme.titulo}')")
         input()
 
     def _descricao_voto(self, voto):
         if voto.categoria.e_filme:
             return f"[{voto.categoria.nome}] Membro: {voto.membro.nome} | Filme: {voto.indicado.titulo} ({voto.indicado.ano})"
         else:
-            return f"[{voto.categoria.nome}] Membro: {voto.membro.nome} | Participante: {voto.indicado.pessoa.nome} ({voto.indicado.funcao.nome} em '{voto.indicado.filme.titulo}')"
+            return f"[{voto.categoria.nome}] Membro: {voto.membro.nome} | Participante: {voto.indicado.participante.nome} ({voto.indicado.funcao.nome} em '{voto.indicado.filme.titulo}')"
+
+    def calcular_vencedores(self):
+        resultados = {}
+        for categoria in self.controladorSistema.controladorCategorias.categorias:
+            votos_categoria = [v for v in self.votos if v.categoria == categoria]
+            contagem = {}
+
+            for voto in votos_categoria:
+                chave = voto.indicado.titulo if categoria.e_filme else f"{voto.indicado.participante.nome} ({voto.indicado.funcao.nome})"
+                contagem[chave] = contagem.get(chave, 0) + 1
+
+            if contagem:
+                vencedor = max(contagem.items(), key=lambda x: x[1])
+                resultados[categoria.nome] = {
+                    'vencedor': vencedor[0],
+                    'votos': vencedor[1],
+                    'total_votos': len(votos_categoria)
+                }
+        return resultados

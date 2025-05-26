@@ -7,6 +7,8 @@ class ControladorFilmes:
         self.__controladorSistema = controladorSistema
         self.__telaFilme = TelaFilme(self)
         self.__filmes.append(Filme("Guerra Mundial I", 2015, "Aventura", "BOOM PÁ PÁ PÁ TRATRATRATRA BOOOM"))
+        self.__filmes.append(Filme("O Regresso", 2015, "Drama", "Um caçador luta para sobreviver após ser atacado por um urso."))
+        self.__filmes.append(Filme("La La Land", 2016, "Musical", "Um pianista de jazz e uma atriz se apaixonam em Los Angeles."))
 
     @property
     def filmes(self):

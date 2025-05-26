@@ -61,7 +61,8 @@ class ControladorSistema:
             4: self.controladorCategorias.exibirMenu,
             5: self.controladorParticipante.exibirMenu,
             6: self.controladorIndicacao.exibirMenu,
-            7: self.controladorVoto.exibirMenu
+            7: self.controladorVoto.exibirMenu,
+            8: self.exibir_resultados
         }
 
         while True:
@@ -87,3 +88,7 @@ class ControladorSistema:
             if membro.id == id:
                 return membro
         return None
+
+    def exibir_resultados(self):
+        resultados = self.controladorVoto.calcular_vencedores()
+        self.telaSistema.mostrar_resultados(resultados)

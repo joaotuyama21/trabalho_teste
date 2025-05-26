@@ -8,6 +8,9 @@ class ControladorMembroAcademia:
         self.__membrosAcademia = []
         self.__controladorSistema = controladorSistema
         self.__telaMembroAcademia = TelaMembroAcademia(self)
+        self.__membrosAcademia.append(MembroAcademia("Fernanda Montenegro", "Feminino", date(1929, 10, 16), "Brasileira"))
+        self.__membrosAcademia.append(MembroAcademia("Steven Spielberg", "Masculino", date(1946, 12, 18), "Americano"))
+        self.__membrosAcademia.append(MembroAcademia("Pedro Almodóvar", "Masculino", date(1949, 9, 25), "Espanhol"))
 
     @property
     def membrosAcademia(self):
@@ -77,7 +80,6 @@ class ControladorMembroAcademia:
     def indicar(self):
         self.telaMembroAcademia.mostraMensagem("\n--- Indicar Filme ou Participante ---")
         membro = self.buscarMembro()
-        # Selecionar categoria
         categorias = self.controladorSistema.controladorCategorias.categorias
         if not categorias:
             self.telaMembroAcademia.mostraMensagem("Nenhuma categoria cadastrada!")
@@ -90,7 +92,6 @@ class ControladorMembroAcademia:
             return
         categoria = categorias[idx_cat]
 
-        # Selecionar indicado conforme tipo de categoria
         if categoria.e_filme:
             filmes = self.controladorSistema.controladorFilmes.filmes
             if not filmes:
@@ -109,14 +110,13 @@ class ControladorMembroAcademia:
                 self.telaMembroAcademia.mostraMensagem("Nenhum participante cadastrado!")
                 return
             for i, part in enumerate(participantes, 1):
-                self.telaMembroAcademia.mostraMensagem(f"{i} - {part.pessoa.nome} ({part.funcao.nome} em '{part.filme.titulo}')")
+                self.telaMembroAcademia.mostraMensagem(f"{i} - {part.participante.nome} ({part.funcao.nome} em '{part.filme.titulo}')")
             idx_part = self.telaMembroAcademia.getInt("Escolha o participante indicado (número): ") - 1
             if idx_part < 0 or idx_part >= len(participantes):
                 self.telaMembroAcademia.mostraMensagem("Participante inválido.")
                 return
             indicado = participantes[idx_part]
 
-        # Criar e registrar a indicação no controlador de indicações do sistema
         nova_indicacao = Indicacao(indicado, categoria, membro)
         self.controladorSistema.controladorIndicacao.indicacoes.append(nova_indicacao)
         self.telaMembroAcademia.mostraMensagem("\n✅ Indicação cadastrada com sucesso!")

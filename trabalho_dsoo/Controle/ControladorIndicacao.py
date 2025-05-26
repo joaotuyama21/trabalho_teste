@@ -77,20 +77,26 @@ class ControladorIndicacao:
             indicado = filmes[idx_filme]
         else:
             participantes = self.controladorSistema.controladorParticipante.participantes
-            if not participantes:
-                self.telaIndicacao.mostraMensagem("Nenhum participante cadastrado!")
+            funcao_categoria = categoria.funcao.nome.strip().lower()
+            participantes_filtrados = [
+                p for p in participantes
+                if p.funcao.nome.strip().lower() == funcao_categoria
+            ]
+            if not participantes_filtrados:
+                self.telaIndicacao.mostraMensagem("Nenhum participante cadastrado para essa função!")
                 return
-            for i, part in enumerate(participantes, 1):
-                self.telaIndicacao.mostraMensagem(f"{i} - {part.pessoa.nome} ({part.funcao.nome} em '{part.filme.titulo}')")
+            for i, part in enumerate(participantes_filtrados, 1):
+                self.telaIndicacao.mostraMensagem(f"{i} - {part.participante.nome} ({part.funcao.nome} em '{part.filme.titulo}')")
             idx_part = self.telaIndicacao.getInt("Escolha o participante indicado (número): ") - 1
-            if idx_part < 0 or idx_part >= len(participantes):
+            if idx_part < 0 or idx_part >= len(participantes_filtrados):
                 self.telaIndicacao.mostraMensagem("Participante inválido.")
                 return
-            indicado = participantes[idx_part]
+            indicado = participantes_filtrados[idx_part]
 
         nova_indicacao = Indicacao(indicado, categoria, membro)
         self.indicacoes.append(nova_indicacao)
         self.telaIndicacao.mostraMensagem("\n✅ Indicação cadastrada com sucesso!")
+
 
     def delIndicacao(self):
         self.telaIndicacao.mostraMensagem("\n--- Remover Indicação ---")
@@ -132,7 +138,7 @@ class ControladorIndicacao:
         if ind.categoria.e_filme:
             self.telaIndicacao.mostraMensagem(f"Filme: {ind.indicado.titulo} ({ind.indicado.ano})")
         else:
-            self.telaIndicacao.mostraMensagem(f"Participante: {ind.indicado.pessoa.nome} ({ind.indicado.funcao.nome} em '{ind.indicado.filme.titulo}')")
+            self.telaIndicacao.mostraMensagem(f"Participante: {ind.indicado.participante.nome} ({ind.indicado.funcao.nome} em '{ind.indicado.filme.titulo}')")
         self.telaIndicacao.mostraMensagem(f"Indicado por: {ind.membro.nome}")
         input()
 
@@ -140,4 +146,4 @@ class ControladorIndicacao:
         if ind.categoria.e_filme:
             return f"[{ind.categoria.nome}] Filme: {ind.indicado.titulo} ({ind.indicado.ano}) | Membro: {ind.membro.nome}"
         else:
-            return f"[{ind.categoria.nome}] Participante: {ind.indicado.pessoa.nome} ({ind.indicado.funcao.nome} em '{ind.indicado.filme.titulo}') | Membro: {ind.membro.nome}"
+            return f"[{ind.categoria.nome}] Participante: {ind.indicado.participante.nome} ({ind.indicado.funcao.nome} em '{ind.indicado.filme.titulo}') | Membro: {ind.membro.nome}"
